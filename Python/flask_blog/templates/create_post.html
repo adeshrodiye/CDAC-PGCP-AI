@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}{% if post %}Edit Post{% else %}New Post{% endif %} - MyBlog{% endblock %}
+
+{% block content %}
+    <div class="form-wrapper">
+        <h1 class="page-title">{% if post %}Edit Post{% else %}Write a New Post{% endif %}</h1>
+        <form method="POST" class="auth-form">
+            <div class="form-group">
+                <label for="title">Title</label>
+                <input type="text" id="title" name="title" value="{{ post.title if post else '' }}" required autofocus>
+            </div>
+
+            <div class="form-group">
+                <label for="category">Category</label>
+                <select id="category" name="category">
+                    {% for cat in categories %}
+                        <option value="{{ cat }}" {% if post and post.category == cat %}selected{% endif %}>{{ cat }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="image_url">Cover image URL <span class="label-hint">(optional)</span></label>
+                <input type="url" id="image_url" name="image_url" placeholder="https://..."
+                       value="{{ post.image_url if post and post.image_url else '' }}">
+                <p class="field-hint">Leave blank to use an automatic placeholder image.</p>
+            </div>
+
+            <div class="form-group">
+                <label for="content">Content</label>
+                <textarea id="content" name="content" rows="12" required>{{ post.content if post else '' }}</textarea>
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+                {% if post %}Save Changes{% else %}Publish Post{% endif %}
+            </button>
+        </form>
+    </div>
+{% endblock %}

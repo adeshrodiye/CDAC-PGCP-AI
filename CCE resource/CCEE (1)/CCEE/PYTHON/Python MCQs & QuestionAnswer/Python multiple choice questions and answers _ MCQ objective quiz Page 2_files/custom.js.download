@@ -1,0 +1,164 @@
+//For Navigation Dropdown
+$(function () {
+    $("li").has(".sub-menu").hover(
+            function () {
+                $(this).find(".sub-menu").slideDown();
+            },
+            function () {
+                $(this).find(".sub-menu").slideUp("fast");
+            }
+    );
+    $(".sub-menu li").has(".sub-menu-2").hover(
+            function () {
+                $(this).find(".sub-menu-2").slideDown();
+            },
+            function () {
+                $(this).find(".sub-menu-2").slideUp("fast");
+            }
+    );
+    $(".sub-menu-2 li").has(".sub-menu-3").hover(
+            function () {
+                $(this).find(".sub-menu-3").slideDown();
+            },
+            function () {
+                $(this).find(".sub-menu-3").slideUp("fast");
+            }
+    );
+});
+
+
+//For Navigation Dropdown Responsive - Works on window resize
+$(window).resize(function () {
+    if ($(window).width() <= 750) {
+        $("ul.sub-menu-3").removeClass('sub-menu-3').addClass("subMneu3");
+        $("ul.sub-menu-2").removeClass('sub-menu-2').addClass("subMneu2");
+        $("ul.sub-menu").removeClass('sub-menu').addClass("subMneu1");
+    }
+    else {
+        $("ul.subMneu3").removeClass('subMneu3').addClass("sub-menu-3");
+        $("ul.subMneu2").removeClass('subMneu2').addClass("sub-menu-2");
+        $("ul.subMneu1").removeClass('subMneu1').addClass("sub-menu");
+    }
+});
+
+//For Navigation Dropdown Responsive - Works on fix window
+$(function () {
+    if ($(window).width() <= 750) {
+        $("ul.sub-menu-3").removeClass('sub-menu-3').addClass("subMneu3");
+        $("ul.sub-menu-2").removeClass('sub-menu-2').addClass("subMneu2");
+        $("ul.sub-menu").removeClass('sub-menu').addClass("subMneu1");
+    }
+    else
+    {
+        $("ul.subMneu3").removeClass('subMneu3').addClass("sub-menu-3");
+        $("ul.subMneu2").removeClass('subMneu2').addClass("sub-menu-2");
+        $("ul.subMneu1").removeClass('subMneu1').addClass("sub-menu");
+    }
+});
+
+$('.chkans').click(function () {
+    var gethis = $(this);
+    var getopt = gethis.val();
+    var getqid = gethis.attr('data-val');
+    $.ajax({
+        type: 'post',
+        url: baseURL + 'getans',
+        data: {optid: getopt, qaid: getqid},
+        success: function (data) {
+            if (data == 0) {
+                gethis.parent().append(" <i class='fa fa-times' style='color:red'></i>");
+            } else if (data == 1) {
+                gethis.parent().append(" <i class='fa fa-check' style='color:green'></i>");
+            }
+            gethis.parent().parent().find('input:radio').attr('disabled', 'disabled');
+            gethis.parent().parent().parent().parent().find('.rans').show();
+            gethis.parent().parent().parent().parent().find('.inst').hide();
+        }
+    })
+})
+
+
+if (document.getElementById('calendar') != null) {
+$(function () {
+
+    var transEndEventNames = {
+        'WebkitTransition': 'webkitTransitionEnd',
+        'MozTransition': 'transitionend',
+        'OTransition': 'oTransitionEnd',
+        'msTransition': 'MSTransitionEnd',
+        'transition': 'transitionend'
+    },
+    transEndEventName = transEndEventNames[ Modernizr.prefixed('transition') ],
+            $wrapper = $('#custom-inner'),
+            $calendar = $('#calendar'),
+            cal = $calendar.calendario({
+                onDayClick: function ($el, $contentEl, dateProperties) {
+
+                    if ($contentEl.length > 0) {
+                        showEvents($contentEl, dateProperties);
+                    }
+
+                },
+                displayWeekAbbr: true
+            }),
+            $month = $('#custom-month').html(cal.getMonthName()),
+            $year = $('#custom-year').html(cal.getYear());
+
+    $('#custom-next').on('click', function () {
+        cal.gotoNextMonth(updateMonthYear);
+    });
+    $('#custom-prev').on('click', function () {
+        cal.gotoPreviousMonth(updateMonthYear);
+    });
+
+    function updateMonthYear() {
+        $month.html(cal.getMonthName());
+        $year.html(cal.getYear());
+    }
+
+    // just an example..
+    function showEvents($contentEl, dateProperties) {
+
+        hideEvents();
+
+        var $events = $('<div id="custom-content-reveal" class="custom-content-reveal"><h4>Events for ' + dateProperties.monthname + ' ' + dateProperties.day + ', ' + dateProperties.year + '</h4></div>'),
+                $close = $('<span class="custom-content-close"></span>').on('click', hideEvents);
+
+        $events.append($contentEl.html(), $close).insertAfter($wrapper);
+
+        setTimeout(function () {
+            $events.css('top', '0%');
+        }, 25);
+
+    }
+    function hideEvents() {
+
+        var $events = $('#custom-content-reveal');
+        if ($events.length > 0) {
+
+            $events.css('top', '100%');
+            Modernizr.csstransitions ? $events.on(transEndEventName, function () {
+                $(this).remove();
+            }) : $events.remove();
+
+        }
+
+    }
+
+});
+}
+
+function loginFunc() {
+    $.ajax({
+        type: 'post',
+        url: baseURL + 'userlogin',
+        data: $("#logform").serialize(),
+        success: function (data) {
+            if (data == 1) {
+                window.location.reload();
+            }else{
+                $('#msgid').text("Username of Password is wrong")
+            }
+        }
+    })
+}

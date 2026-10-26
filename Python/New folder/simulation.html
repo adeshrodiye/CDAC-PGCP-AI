@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Fluid Simulation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: #050508;
+        }
+        canvas {
+            width: 100vw;
+            height: 100vh;
+            display: block;
+        }
+        .ui {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: rgba(255, 255, 255, 0.7);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-size: 14px;
+            pointer-events: none;
+            letter-spacing: 1px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+        }
+    </style>
+</head>
+<body>
+    <div class="ui">Move or Drag Your Mouse to Create Fluid Swirls</div>
+    <canvas id="canvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+
+        if (!gl) {
+            alert('WebGL not supported in your browser.');
+        }
+
+        // Shader helper functions
+        function createShader(gl, type, source) {
+            const shader = gl.createShader(type);
+            gl.shaderSource(shader, source);
+            gl.compileShader(shader);
+            if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+                console.error('Shader error:', gl.getShaderInfoLog(shader));
+                gl.deleteShader(shader);
+                return null;
+            }
+            return shader;
+        }
+
+        function createProgram(gl, vsSource, fsSource) {
+            const vs = createShader(gl, gl.VERTEX_SHADER, vsSource);
+            const fs = createShader(gl, gl.FRAGMENT_SHADER, fsSource);
+            const program = gl.createProgram();
+            gl.attachShader(program, vs);
+            gl.attachShader(program, fs);
+            gl.linkProgram(program);
+            if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+                console.error('Program link error:', gl.getProgramInfoLog(program));
+                return null;
+            }
+            return program;
+        }
+
+        const baseVertexShader = `
+            attribute vec2 a_position;
+            varying vec2 v_uv;
+            void main() {
+                v_uv = a_position * 0.5 + 0.5;
+                gl_Position = vec4(a_position, 0.0, 1.0);
+            }
+        `;
+
+        const simulationShader = `
+            precision highp float;
+            varying vec2 v_uv;
+            uniform sampler2D u_texture;
+            uniform vec2 u_resolution;
+            uniform vec3 u_mouse; // x, y, activity intensity
+            uniform vec3 u_color;
+            uniform float u_time;
+
+            // Simplex Noise functions for turbulence
+            vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+            vec2 mod289(vec2 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
+            vec3 permute(vec3 x) { return mod289(((x*34.0)+1.0)*x); }
+
+            float snoise(vec2 v) {
+                const vec4 C = vec4(0.211324865405187, 0.366025403784439, -0.577350269189626, 0.024390243902439);
+                vec2 i  = floor(v + dot(v, C.yy) );
+                vec2 x0 = v -   i + dot(i, C.xx);
+                vec2 i1 = (x0.x > x0.y) ? vec2(1.0, 0.0) : vec2(0.0, 1.0);
+                vec4 x12 = x0.xyxy + C.xxzz;
+                x12.xy -= i1;
+                i = mod289(i);
+                vec3 p = permute( permute( i.y + vec3(0.0, i1.y, 1.0 )) + i.x + vec3(0.0, i1.x, 1.0 ));
+                vec3 m = max(0.5 - vec3(dot(x0,x0), dot(x12.xy,x12.xy), dot(x12.zw,x12.zw)), 0.0);
+                m = m*m;
+                m = m*m;
+                vec3 x = 2.0 * fract(p * C.www) - 1.0;
+                vec3 h = abs(x) - 0.5;
+                vec3 ox = floor(x + 0.5);
+                vec3 a0 = x - ox;
+                m *= 1.79284291400159 - 0.85373472095314 * ( a0*a0 + h*h );
+                vec3 g;
+                g.x  = a0.x  * x0.x  + h.x  * x0.y;
+                g.yz = a0.yz * x12.xz + h.yz * x12.yw;
+                return 130.0 * dot(m, g);
+            }
+
+            void main() {
+                vec2 st = v_uv;
+                
+                // Fluid swirling / advection distortion
+                float n = snoise(st * 3.5 + u_time * 0.12) * 0.003;
+                vec2 distortion = vec2(
+                    snoise(st * 5.0 + vec2(u_time * 0.1, 0.0)),
+                    snoise(st * 5.0 + vec2(0.0, u_time * 0.1))
+                ) * 0.003;
+
+                vec4 color = texture2D(u_texture, st + distortion + vec2(n));
+
+                // Mouse interaction / Fluid injection
+                if (u_mouse.z > 0.01) {
+                    vec2 aspect = vec2(u_resolution.x / u_resolution.y, 1.0);
+                    float dist = distance(st * aspect, u_mouse.xy * aspect);
+                    float radius = 0.09;
+                    
+                    if (dist < radius) {
+                        float influence = smoothstep(radius, 0.0, dist) * u_mouse.z;
+                        color.rgb += u_color * influence * 2.2;
+                    }
+                }
+
+                // Dissipation decay
+                color.rgb *= 0.985;
+
+                gl_FragColor = color;
+            }
+        `;
+
+        const displayShader = `
+            precision highp float;
+            varying vec2 v_uv;
+            uniform sampler2D u_texture;
+
+            void main() {
+                vec4 tex = texture2D(u_texture, v_uv);
+                vec3 col = tex.rgb;
+                
+                // Vibrancy & neon glow adjustments
+                col = pow(col, vec3(0.85));
+                vec3 bloom = col + vec3(pow(col.r, 1.8) * 0.4, pow(col.g, 2.0) * 0.25, pow(col.b, 1.5) * 0.5);
+                
+                gl_FragColor = vec4(bloom, 1.0);
+            }
+        `;
+
+        const simProgram = createProgram(gl, baseVertexShader, simulationShader);
+        const displayProgram = createProgram(gl, baseVertexShader, displayShader);
+
+        const positionBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+        gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
+            -1, -1,  1, -1, -1,  1,
+            -1,  1,  1, -1,  1,  1
+        ]), gl.STATIC_DRAW);
+
+        let width = window.innerWidth;
+        let height = window.innerHeight;
+
+        function createTexture() {
+            const tex = gl.createTexture();
+            gl.bindTexture(gl.TEXTURE_2D, tex);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+            return tex;
+        }
+
+        function createFramebuffer(texture) {
+            const fb = gl.createFramebuffer();
+            gl.bindFramebuffer(gl.FRAMEBUFFER, fb);
+            gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
+            return fb;
+        }
+
+        let texA, texB, fbA, fbB;
+
+        function initFramebuffers() {
+            width = window.innerWidth;
+            height = window.innerHeight;
+            canvas.width = width;
+            canvas.height = height;
+
+            texA = createTexture();
+            texB = createTexture();
+            fbA = createFramebuffer(texA);
+            fbB = createFramebuffer(texB);
+        }
+
+        window.addEventListener('resize', initFramebuffers);
+        initFramebuffers();
+
+        // Mouse Tracking state
+        let mouse = { x: 0.5, y: 0.5, intensity: 0, colorHue: 0.85 };
+        let mouseMovingTimeout;
+
+        function getHSLColor(h, s, l) {
+            const hue2rgb = (p, q, t) => {
+                if (t < 0) t += 1;
+                if (t > 1) t -= 1;
+                if (t < 1/6) return p + (q - p) * 6 * t;
+                if (t < 1/2) return q;
+                if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+                return p;
+            };
+            const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+            const p = 2 * l - q;
+            return [
+                hue2rgb(p, q, h + 1/3),
+                hue2rgb(p, q, h),
+                hue2rgb(p, q, h - 1/3)
+            ];
+        }
+
+        function handlePointerMove(clientX, clientY, isDown) {
+            const rect = canvas.getBoundingClientRect();
+            mouse.x = (clientX - rect.left) / width;
+            mouse.y = 1.0 - (clientY - rect.top) / height;
+            mouse.intensity = isDown ? 1.0 : 0.65;
+            mouse.colorHue += 0.003;
+
+            clearTimeout(mouseMovingTimeout);
+            mouseMovingTimeout = setTimeout(() => {
+                mouse.intensity = 0.0; // Decay intensity when stopped
+            }, 100);
+        }
+
+        window.addEventListener('mousemove', (e) => handlePointerMove(e.clientX, e.clientY, e.buttons > 0));
+        window.addEventListener('mousedown', (e) => handlePointerMove(e.clientX, e.clientY, true));
+        window.addEventListener('touchmove', (e) => {
+            if (e.touches.length > 0) handlePointerMove(e.touches[0].clientX, e.touches[0].clientY, true);
+        });
+
+        const startTime = Date.now();
+
+        function render() {
+            const time = (Date.now() - startTime) * 0.001;
+            const rgb = getHSLColor(mouse.colorHue % 1.0, 0.9, 0.6);
+
+            // Pass 1: Compute Fluid Simulation
+            gl.bindFramebuffer(gl.FRAMEBUFFER, fbB);
+            gl.viewport(0, 0, width, height);
+
+            gl.useProgram(simProgram);
+
+            const posLoc = gl.getAttribLocation(simProgram, 'a_position');
+            gl.enableVertexAttribArray(posLoc);
+            gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+            gl.vertexAttribPointer(posLoc, 2, gl.FLOAT, false, 0, 0);
+
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, texA);
+            gl.uniform1i(gl.getUniformLocation(simProgram, 'u_texture'), 0);
+
+            gl.uniform2f(gl.getUniformLocation(simProgram, 'u_resolution'), width, height);
+            gl.uniform3f(gl.getUniformLocation(simProgram, 'u_mouse'), mouse.x, mouse.y, mouse.intensity);
+            gl.uniform3f(gl.getUniformLocation(simProgram, 'u_color'), rgb[0], rgb[1], rgb[2]);
+            gl.uniform1f(gl.getUniformLocation(simProgram, 'u_time'), time);
+
+            gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+            // Pass 2: Render Buffer to Screen
+            gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+            gl.viewport(0, 0, width, height);
+
+            gl.useProgram(displayProgram);
+
+            const dispPosLoc = gl.getAttribLocation(displayProgram, 'a_position');
+            gl.enableVertexAttribArray(dispPosLoc);
+            gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+            gl.vertexAttribPointer(dispPosLoc, 2, gl.FLOAT, false, 0, 0);
+
+            gl.activeTexture(gl.TEXTURE0);
+            gl.bindTexture(gl.TEXTURE_2D, texB);
+            gl.uniform1i(gl.getUniformLocation(displayProgram, 'u_texture'), 0);
+
+            gl.drawArrays(gl.TRIANGLES, 0, 6);
+
+            // Swap ping-pong textures
+            let tempTex = texA; texA = texB; texB = tempTex;
+            let tempFb = fbA; fbA = fbB; fbB = tempFb;
+
+            requestAnimationFrame(render);
+        }
+
+        render();
+    </script>
+</body>
+</html></title>
+</head>
+<body>
+
+</body>
+</html>

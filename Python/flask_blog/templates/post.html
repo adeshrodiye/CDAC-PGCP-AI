@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}{{ post.title }} - MyBlog{% endblock %}
+
+{% block content %}
+    <article class="single-post">
+        <div class="single-post-image" style="background-image: url('{{ post.display_image }}');">
+            <span class="badge badge-{{ post.category|lower }}">{{ post.category }}</span>
+        </div>
+
+        <div class="single-post-body">
+            <h1 class="page-title">{{ post.title }}</h1>
+
+            <a href="{{ url_for('profile', username=post.author.username) }}" class="post-meta post-meta-link">
+                <img src="{{ post.author.avatar_url }}" class="mini-avatar" alt="{{ post.author.username }}">
+                <span>{{ post.author.username }} &middot; {{ post.date_posted.strftime('%B %d, %Y at %I:%M %p') }}</span>
+            </a>
+
+            <div class="post-body">
+                {{ post.content }}
+            </div>
+
+            {% if current_user.is_authenticated and current_user.id == post.user_id %}
+                <div class="post-actions">
+                    <a href="{{ url_for('edit_post', post_id=post.id) }}" class="btn btn-secondary">Edit</a>
+                    <form method="POST" action="{{ url_for('delete_post', post_id=post.id) }}"
+                          onsubmit="return confirm('Delete this post permanently?');" style="display:inline;">
+                        <button type="submit" class="btn btn-danger">Delete</button>
+                    </form>
+                </div>
+            {% endif %}
+
+            <a href="{{ url_for('index') }}" class="back-link">&larr; Back to all posts</a>
+        </div>
+    </article>
+{% endblock %}

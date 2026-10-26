@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}MyBlog - Stories worth reading{% endblock %}
+
+{% block content %}
+
+    <section class="hero">
+        <h1>Stories worth reading.</h1>
+        <p>Technology, travel, food, and life — written by people who actually do the thing.</p>
+    </section>
+
+    <nav class="category-tabs">
+        <a href="{{ url_for('index') }}"
+           class="tab {% if selected_category == 'All' %}tab-active{% endif %}">All</a>
+        {% for cat in all_categories %}
+            <a href="{{ url_for('index', category=cat) }}"
+               class="tab {% if selected_category == cat %}tab-active{% endif %}">{{ cat }}</a>
+        {% endfor %}
+    </nav>
+
+    {% if featured %}
+        <a href="{{ url_for('post', post_id=featured.id) }}" class="featured-card">
+            <div class="featured-image" style="background-image: url('{{ featured.display_image }}');"></div>
+            <div class="featured-body">
+                <span class="badge badge-{{ featured.category|lower }}">{{ featured.category }}</span>
+                <h2>{{ featured.title }}</h2>
+                <p>{{ featured.excerpt }}</p>
+                <div class="post-meta">
+                    <img src="{{ featured.author.avatar_url }}" class="mini-avatar" alt="{{ featured.author.username }}">
+                    <span>{{ featured.author.username }} &middot; {{ featured.date_posted.strftime('%B %d, %Y') }}</span>
+                </div>
+            </div>
+        </a>
+    {% endif %}
+
+    {% if posts %}
+        <div class="post-grid">
+            {% for post in posts %}
+                <article class="post-card">
+                    <a href="{{ url_for('post', post_id=post.id) }}" class="post-card-image"
+                       style="background-image: url('{{ post.display_image }}');">
+                        <span class="badge badge-{{ post.category|lower }}">{{ post.category }}</span>
+                    </a>
+                    <div class="post-card-body">
+                        <h2><a href="{{ url_for('post', post_id=post.id) }}">{{ post.title }}</a></h2>
+                        <p class="post-excerpt">{{ post.excerpt }}</p>
+                        <div class="post-meta">
+                            <img src="{{ post.author.avatar_url }}" class="mini-avatar" alt="{{ post.author.username }}">
+                            <span>{{ post.author.username }} &middot; {{ post.date_posted.strftime('%b %d, %Y') }}</span>
+                        </div>
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
+    {% elif not featured %}
+        <p class="empty-state">
+            No posts in this category yet.
+            {% if current_user.is_authenticated %}
+                <a href="{{ url_for('create_post') }}">Write one!</a>
+            {% else %}
+                <a href="{{ url_for('login') }}">Log in</a> to write one.
+            {% endif %}
+        </p>
+    {% endif %}
+
+{% endblock %}

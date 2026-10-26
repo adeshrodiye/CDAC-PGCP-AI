@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+{% extends 'base.html' %}
+    {% block body %}
+        {% for book in books %}
+            <article class="media content-section">
+                <div class="media-body">
+                    <div class="article-metadata">
+                        <a class="mr-2" href="#">{{ book.title }}</a>
+                    </div>
+                    <div>
+                        <small class="text-muted">By {{ book.author }}</small>
+                    </div>
+                    <div>
+                        <small class="text-muted">{{ book.price }} rs.</small>
+                    </div>
+                </div>
+            </article>
+        {% endfor %}
+    {% endblock %}
+</body>
+</html>

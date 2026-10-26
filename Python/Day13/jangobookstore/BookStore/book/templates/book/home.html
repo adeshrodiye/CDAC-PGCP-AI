@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Home</title>
+   <link rel="stylesheet" href="../static/main.css">
+</head>
+<body>
+{% extends "base.html" %}
+
+
+{% block body %}
+    <h1>Welcome to My Book Store</h1>
+
+    <div class="book-list">
+        {% for i in book %}
+            <h2 class="article-title">{{ i.title }}</h2>
+            <p class="article-content">Author: {{ i.author }}</p>
+            <p>Price: ${{ i.price }}</p>
+            <hr>
+        {% endfor %}
+    </div>
+{% endblock %}
+</body>
+</html>

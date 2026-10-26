@@ -1,0 +1,16 @@
+# Python & Jupyter Caches
+__pycache__/
+*.py[cod]
+.ipynb_checkpoints/
+
+# Environments & IDEs
+.venv/
+venv/
+.idea/
+.vscode/
+.virtual_documents/
+
+# Large Data Files (modify if needed)
+*.csv
+*.zip
+*.parquet

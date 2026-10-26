@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>All Blog Posts</h2>
+{% for post in posts %}
+    <article>
+        <h3>{{ post.title }}</h3>
+        <small>By {{ post.author.username }} on {{ post.date_posted.strftime('%Y-%m-%d') }}</small>
+        <p>{{ post.content }}</p>
+    </article>
+    <hr>
+{% else %}
+    <p>No posts available yet.</p>
+{% endfor %}
+{% endblock %}

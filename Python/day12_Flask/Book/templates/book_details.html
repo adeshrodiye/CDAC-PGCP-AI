@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+    {% block body %}
+        <article class="media content-section">
+            <div class="media-body">
+                <div class="article-metadata">
+                    <h4>{{ book.title }}</h4>
+                </div>
+                <div>
+                    <small class="text-muted">By {{ book.author }}</small>
+                </div>
+                <div>
+                    <small class="text-muted">{{ book.price }} rs.</small>
+                </div>
+            </div>
+        </article>
+    {% endblock %}

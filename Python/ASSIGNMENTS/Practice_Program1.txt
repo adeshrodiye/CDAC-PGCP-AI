@@ -1,0 +1,18 @@
+1. Using for loop, write and run a Python program for this algorithm.
+Here is an algorithm to print out n! from 0! to 10! 
+
+2. Find prime numbers between a given range - start(take start no) , end (take end number)
+
+3. Write a python program to swap a 3 digit number
+input 321
+output 123
+
+4. Count Digits, Even/Odd, Sum
+e.g. 23456
+output digits : 5
+sum : 20
+Even digits : 3
+odd digits :2
+
+
+5. Find LCM and GCD for given numbers [take 2 numbers] using loops only

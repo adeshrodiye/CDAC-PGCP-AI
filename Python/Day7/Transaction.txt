@@ -1,0 +1,7 @@
+TransactionID|Date|CustomerType|ProductCategory|Quantity|Price|StoreLocation|PaymentMethod
+TXN1001|2026-06-01|Member|Electronics|1|599.99|New York|Credit Card
+TXN1002|2026-06-01|Normal|Clothing|3|25.50|Los Angeles|Cash
+TXN1003|2026-06-02|Member|Home Goods|2|45.00|Chicago|Mobile Wallet
+TXN1004|2026-06-02|Normal|Electronics|1|120.00|New York|Credit Card
+TXN1005|2026-06-03|Member|Clothing|2|89.99|Chicago|Credit Card
+TXN1006|2026-06-03|Normal|Books|4|12.99|Los Angeles|Cash

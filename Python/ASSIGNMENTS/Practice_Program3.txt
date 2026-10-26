@@ -1,0 +1,29 @@
+Q1. Define a function overlapping () that takes two lists and returns True if they have at
+least one member in common, False otherwise.
+
+Q.2.In English, present participle is formed by adding suffix -ing to infinite form: go -> going. A simple set of rules can be given as follows:
+ a. If the verb ends in e, drop the e and add ing 
+ b. If the verb ends in ie, change ie to y and add ing
+Write a function make_ing_form() which accepts a list of verbs and returns a dictionary with verb : present participle
+
+Q.3. Function display_greeting(message) prints message sent as argument as today's greeting. Decorate the function using appropriate decorated so that the greeting is displayed using Uppercase.
+
+Q. 4. Create series of 'n' prime numbers and display first 10
+
+Q.5 
+1. Find employees that know 'python'
+2. Add a new skill - 'test' in skillset of all employees
+3. Sort employees by skills 
+for the given dictionary of employees
+
+emp_data = {'Amol': ['C', 'C++', 'Java'], 'Aditya': ['Angular', 'Java'],
+            'Aditi': ['Python', 'PHP', 'Database']}
+
+Q.6
+Following data displays min/max/average temp for cities
+weather= [{'Mumbai' : [28, 30, 32]},.....]
+
+1. Print the weather data
+2. Print the city with maximum/min temp
+3. Print all the cities that expereince min temp more than 30 degree
+4. Create a dictionary to print 'City':'Ave temp'

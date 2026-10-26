@@ -1,0 +1,115 @@
+body {
+  background: #fafafa;
+  color: #333333;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: #444444;
+}
+
+.bg-steel {
+  background-color: #b6dcfe;
+}
+
+/* Navbar overall polish */
+.navbar {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+/* Brand */
+.navbar-brand {
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+/* Nav links */
+.navbar-nav .nav-link {
+  color: #444;
+  margin-right: 8px;
+}
+
+.navbar-nav .nav-link:hover {
+  color: #000;
+}
+
+/* Search form wrapper */
+.navbar form {
+  display: flex;
+  align-items: center;
+}
+
+/* Search input */
+.navbar input[type="search"] {
+  border-radius: 20px;
+  border: 1px solid #ddd;
+  padding: 6px 14px;
+  font-size: 14px;
+  transition: all 0.2s ease-in-out;
+}
+
+/* Input focus */
+.navbar input[type="search"]:focus {
+  outline: none;
+  box-shadow: none;
+  border-color: #28a745; /* matches outline-success */
+}
+
+/* Search button */
+.navbar button[type="submit"] {
+  border-radius: 20px;
+  padding: 6px 16px;
+  font-size: 14px;
+  margin-left: 6px;
+  transition: all 0.2s ease-in-out;
+}
+
+/* Hover effect */
+.navbar button[type="submit"]:hover {
+  background-color: #28a745;
+  color: #fff;
+}
+
+.content-section {
+  background: #ffffff;
+  padding: 10px 20px;
+  border: 1px solid #dddddd;
+  border-radius: 3px;
+  margin-top: 30px;
+  margin-bottom: 20px;
+}
+
+.article-title {
+  color: #444444;
+}
+
+a.article-title:hover {
+  color: #428bca;
+  text-decoration: none;
+}
+
+.article-content {
+  white-space: pre-line;
+}
+
+.article-img {
+  height: 65px;
+  width: 65px;
+  margin-right: 16px;
+}
+
+.article-metadata {
+  padding-bottom: 1px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid #e3e3e3
+}
+
+.article-metadata a:hover {
+  color: #333;
+  text-decoration: none;
+}
+
+.article-svg {
+  width: 25px;
+  height: 25px;
+  vertical-align: middle;
+}

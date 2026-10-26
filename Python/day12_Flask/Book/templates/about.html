@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+   <meta charset="UTF-8">
+    {% if title %}
+    <title>{{title}}</title>
+    {% else %}
+    <title>My Book store</title>
+    {% endif %}
+</head>
+<body>
+{% extends "base.html" %}
+{% block body %}
+  <h1> The Largest Book store in India</h1>
+{% endblock %}
+</body>
+</html>
